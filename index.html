@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Libre .aax Converter</title>
+        <link rel="stylesheet" href="assets/pico.min.css">
+        <script src="assets/ffmpeg/ffmpeg.min.js"></script>
+        <script src="assets/ffmpeg/ffmpeg-core.min.js.b64.js"></script>
+        <script src="assets/ffmpeg/ffmpeg-core.wasm.b64.js"></script>
+        <script src="assets/tables/map.js"></script>
+        <style>
+            :root {
+                --pico-border-radius: 10px;
+            }
+
+            body {
+                background-image: linear-gradient(120deg, #13131e 20%, #1f131e 100%);
+            }
+
+            footer {
+                font-size: 0.5em;
+            }
+
+            img,
+            mark,
+            table {
+                border-collapse: separate;
+                border-radius: var(--pico-border-radius);
+                overflow: hidden;
+            }
+
+            summary::after {
+                float: left !important;
+            }
+
+            article header *,
+            article>*:last-child,
+            div>*:last-child,
+            form>*:last-child,
+            section,
+            section>table,
+            small>*:last-child,
+            td>*:last-child {
+                margin-bottom: 0 !important;
+            }
+
+            .green {
+                background: #00800011 !important;
+            }
+
+            .yellow {
+                background: #ffff0011 !important;
+            }
+
+            .red {
+                background: #ff000011 !important;
+            }
+        </style>
+    </head>
+
+    <body>
+        <header class="container">
+            <hgroup>
+                <h1><i>Libre .aax converter</i></h1>
+                <p>Liberate your purchased Audible audiobooks from proprietary apps and file formats, and regain full ownership of your content &ndash; no strings attached.</p>
+            </hgroup>
+
+            <section class="grid">
+                <article>
+                    <header><b>🚫 Zero Bullshit.</b></header>
+                    <p>No signup, no fees, no ads, no download or technical knowledge required.</p>
+                </article>
+                <article>
+                    <header><b>🛡️ Fully Private.</b></header>
+                    <p>Everything runs locally in your browser. Nothing is ever uploaded anywhere.</p>
+                </article>
+                <article>
+                    <header><b>💻 Truly yours.</b></header>
+                    <p>Free & open source. <a href="https://github.com/lunofe/libre-aax-converter">Download and run it offline</a>, no setup needed.</p>
+                </article>
+            </section>
+
+            <details>
+                <summary>Why & How?</summary>
+                <article>
+                    <small>
+                        <p>When you buy an audiobook on Audible, you aren't just paying for a temporary streaming license like on most other platforms, the content actually belongs to you. However, the real issue starts when you download it. Audible forces the file into a proprietary .aax format that keeps it under their control and binds it to their ecosystem. This completely defeats the purpose of "owning" your media: if you can only play your own property through their system, true ownership becomes entirely meaningless.</p>
+                        <p>The technical process starts out very pragmatic and then quickly turns into "remarkably creative tinkering" or just plain "magic". To tie the audiobook to your specific account, Audible personalizes the file using a small digital key known as "activation bytes". Instead of trying to break or circumvent the encryption, this tool does something much smarter: it handles the file in the exact way Audible intents.</p>
+                        <p>By analyzing the unique signature embedded inside your audiobook and with the help of "pre-computed rainbow tables", created by a community of developers who also refused to put up with this proprietary nonsense, the possibilities for your activation bytes can be narrowed down drastically. Think of it like visiting a library and knowing exactly which genre section the book you want is in: you don't have to search the entire building anymore, just that one specific section. Working through that remaining section is exactly what your device puts its computing power to use for.</p>
+                    </small>
+                </article>
+            </details>
+        </header>
+
+        <hr>
+
+        <main class="container">
+            <article>
+                <header>
+                    <h3>Step 1: Get your audiobooks</h3>
+                </header>
+                <p>Open your Audible library in a web browser and begin downloading your audiobooks.</p>
+                <img src="assets/audible.svg" alt="">
+            </article>
+
+            <br>
+
+            <article>
+                <header>
+                    <h3>Step 2: Pick the .aax file you want to convert</h3>
+                </header>
+                <input id="aaxFile" type="file" accept=".aax">
+            </article>
+
+            <br>
+
+            <article>
+                <header>
+                    <h3>Step 3: Turn the key</h3>
+                </header>
+                <p>Think of your Audible account as a treasure chest, and your audiobooks as the treasure inside. To get them, you need your account's key (known as "activation bytes"). If you don't know them, simply let the tool analyze your file and magically discover them for you.</p>
+                <blockquote>
+                    <mark>Quick Tip:</mark> Once you know your activation bytes, write them down somewhere! This key never changes, which means the next time you convert an audiobook, you can just type it in directly to skip the "magic discovery" and save some time.
+                </blockquote>
+                <section class="grid">
+                    <table>
+                        <tr>
+                            <td>
+                                <p><b>Already know your activation bytes?</b></p>
+                                <form>
+                                    <fieldset role="group">
+                                        <input id="activationBytes" type="text" placeholder="e.g. df75ae2c" disabled>
+                                        <button id="verifyBtn" type="button" disabled>Verify</button>
+                                    </fieldset>
+                                    <small>Exactly 8 characters.</small>
+                                </form>
+                            </td>
+                        </tr>
+                    </table>
+                    <table>
+                        <tr>
+                            <td>
+                                <p><b>Don't know them? No problem!</b></p>
+                                <form>
+                                    <fieldset role="group">
+                                        <button id="resolveBtn" type="button" disabled>Use magic to discover them 🪄</button>
+                                    </fieldset>
+                                    <small>Might take a minute or two, depending on your device.</small>
+                                </form>
+
+                            </td>
+                        </tr>
+                    </table>
+                </section>
+                <p id="activationStatus"></p>
+
+            </article>
+
+            <br>
+
+            <article>
+                <header>
+                    <h3>Step 4: Pick your preferred format</h3>
+                </header>
+                <table>
+                    <tr>
+                        <td></td>
+                        <td><b>.m4b</b> (recommended)</td>
+                        <td><b>.mp3</b></td>
+                        <td><b>.flac</b></td>
+                    </tr>
+                    <tr>
+                        <td><b>Processing Time</b></td>
+                        <td class="green">Fast (&lt;1 min)</td>
+                        <td class="red">~40x slower</td>
+                        <td class="yellow">~3x slower</td>
+                    </tr>
+                    <tr>
+                        <td><b>Audio Quality</b></td>
+                        <td class="green">Matches original</td>
+                        <td class="green">Reasonable</td>
+                        <td class="green">Lossless</td>
+                    </tr>
+                    <tr>
+                        <td><b>File Size</b></td>
+                        <td class="green">Reasonable</td>
+                        <td class="green">Can be smaller, or not</td>
+                        <td class="red">Very large</td>
+                    </tr>
+                    <tr>
+                        <td><b>Chapters & Audiobook Info</b></td>
+                        <td class="green">Yes</td>
+                        <td class="red">No</td>
+                        <td class="red">No</td>
+                    </tr>
+                    <tr>
+                        <td><b>Compatibility</b></td>
+                        <td class="green">Widely supported</td>
+                        <td class="green">Plays on literally anything</td>
+                        <td class="yellow">Should probably work</td>
+                    </tr>
+                </table>
+                <section class="grid">
+                    <form>
+                        <fieldset role="group">
+                            <select id="outputFormat" disabled>
+                                <option value="m4b">.m4b (recommended)</option>
+                                <option value="mp3">.mp3</option>
+                                <option value="flac">.flac</option>
+                            </select>
+                            <button id="convertBtn" type="button" disabled>Convert</button>
+                        </fieldset>
+
+                    </form>
+                    <div><small>The processing time depends on the audiobook lenght, selected format and your device's strength. This might take a while and freeze your web browser.</small></div>
+                </section>
+
+                <p id="convertStatus"></p>
+            </article>
+        </main>
+
+        <hr>
+
+        <footer class="container tiny">
+            <article>
+                <p>Not an official Audible or Amazon product or service. Not approved by or associated with Audible or Amazon. All brand names, trademarks, registered marks, logos, and symbols are property of their rightful owners.</p>
+                <p>This software is provided "as is," without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors be liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the software or the use or other dealings in the software.</p>
+                <p>This software does not circumvent encryption or digital rights management in any way. The application simply applies the user's own activation bytes associated with their personal Audible account to open the audiobook in the same manner as Audible does. Only use this application for gaining full access to your own audiobooks for archiving/conversion/convenience. Audiobooks must not be distributed.</p>
+            </article>
+            <article>
+                <a href="LICENSE">License</a> &nbsp; | &nbsp; <a href="https://github.com/lunofe/libre-aax-converter">Source code</a>
+            </article>
+        </footer>
+
+        <script src="assets/app.js"></script>
+    </body>
+
+</html>
